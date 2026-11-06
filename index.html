@@ -124,7 +124,7 @@
     padding-block: 8px; border-width: 1px;
     transition: opacity .6s ease, max-height .6s ease, margin-top .6s ease, visibility 0s;
   }
-  .hint { font-size: 13px; color: rgba(255,244,224,.75); text-shadow: 0 1px 8px #12052a; text-align: right; }
+  .hint { font-size: 11px; color: rgba(255,244,224,.75); text-shadow: 0 1px 8px #12052a; text-align: right; }
   .row {
     display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
     padding: 8px; border-radius: 18px;
@@ -150,6 +150,34 @@
     border: 1px solid rgba(255,244,224,.25); border-radius: 5px; padding: 3px 5px;
   }
 
+  /* ---------- Credit line under the diyas ---------- */
+  .credit {
+    position: fixed; left: 0; right: 0; bottom: 5px; z-index: 3;
+    text-align: center; pointer-events: none;
+    font-family: var(--serif); font-style: italic;
+    font-size: 11px; letter-spacing: .02em;
+    color: rgba(255,244,224,.6);
+    text-shadow: 0 1px 6px rgba(20,4,40,.9);
+  }
+
+  /* ---------- Phones / narrow screens ---------- */
+  @media (max-width: 700px) {
+    .greeting { top: 44%; width: calc(100vw - 32px); }
+    .title { font-size: 14.5vw; }
+    .msg { font-size: 16px; max-width: 30ch; }
+    .from { font-size: 14px; }
+    /* sit above the row of diyas instead of on top of them */
+    .dock { right: 16px; left: 16px; bottom: 120px; max-width: none; align-items: center; }
+    .hint {
+      text-align: center; font-size: 10px; line-height: 1.45;
+      padding: 6px 12px; border-radius: 12px;
+      background: rgba(26,8,48,.55);
+    }
+    .row { justify-content: center; }
+    .credit { font-size: 9.5px; bottom: 4px; }
+    .row button { font-size: 13px; padding: 9px 10px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .hi, .msg, .from, .title span { animation: none; opacity: 1; }
   }
@@ -168,6 +196,8 @@
   <p class="msg editable" id="msg">May the light of every diya fill your home with joy, your work with purpose, and your year with prosperity.</p>
   <p class="from editable" id="from">With warm wishes from all of us</p>
 </main>
+
+<p class="credit">Made with love ❤️ by Monojit</p>
 
 <div class="dock" id="dock">
   <p class="hint">Click anywhere in the sky to launch a firework. Click a diya to make it flare.</p>
@@ -356,9 +386,10 @@
   }
 
   function buildDiyas() {
-    const n = clamp(Math.floor(W / 140), 6, 22);
+    const narrow = W < 700;
+    const n = narrow ? clamp(Math.floor(W / 70), 4, 9) : clamp(Math.floor(W / 140), 6, 22);
     const spacing = W / n;
-    const s = clamp(spacing * 0.5, 46, 82);
+    const s = narrow ? clamp(spacing * 0.6, 34, 52) : clamp(spacing * 0.5, 46, 82);
     diyas = [];
     for (let i = 0; i < n; i++) {
       diyas.push({ x: (i + 0.5) * spacing - s * 0.08, y: H - s * 0.55 - 20, s,
