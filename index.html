@@ -109,10 +109,21 @@
   .dock {
     position: fixed; right: 24px; bottom: 24px;
     display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
-    transition: opacity .6s ease; z-index: 5;
+    z-index: 5;
     max-width: min(760px, calc(100vw - 48px));
+    pointer-events: none;
   }
-  body.idle .dock { opacity: 0; pointer-events: none; }
+  /* hint always shows; button row shows only after Ctrl+Esc */
+  .dock .row {
+    opacity: 0; visibility: hidden; max-height: 0; margin-top: -10px; overflow: hidden;
+    padding-block: 0; border-width: 0;
+    transition: opacity .6s ease, max-height .6s ease, margin-top .6s ease, visibility 0s .6s;
+  }
+  body.dock-open .dock .row {
+    opacity: 1; visibility: visible; max-height: 240px; margin-top: 0; pointer-events: auto;
+    padding-block: 8px; border-width: 1px;
+    transition: opacity .6s ease, max-height .6s ease, margin-top .6s ease, visibility 0s;
+  }
   .hint { font-size: 13px; color: rgba(255,244,224,.75); text-shadow: 0 1px 8px #12052a; text-align: right; }
   .row {
     display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
@@ -809,6 +820,25 @@
       if (!state.editing && !dock.matches(':hover') && !dock.contains(document.activeElement)) document.body.classList.add('idle');
       else wake();
     }, 3500);
+    if (document.body.classList.contains('dock-open')) armDock();
+  }
+
+  // control dock: hidden until Ctrl+Esc, auto-hides after 6s without activity
+  let dockTimer = null;
+  function armDock() {
+    clearTimeout(dockTimer);
+    dockTimer = setTimeout(() => {
+      if (state.editing || dock.matches(':hover')) armDock(); else hideDock();
+    }, 6000);
+  }
+  function showDock() { document.body.classList.add('dock-open'); armDock(); }
+  function hideDock() {
+    clearTimeout(dockTimer);
+    document.body.classList.remove('dock-open');
+    if (dock.contains(document.activeElement)) document.activeElement.blur();
+  }
+  function toggleDock() {
+    document.body.classList.contains('dock-open') ? hideDock() : showDock();
   }
 
   const $ = id => document.getElementById(id);
@@ -867,6 +897,7 @@
 
   window.addEventListener('keydown', e => {
     wake();
+    if (e.ctrlKey && e.key === 'Escape') { e.preventDefault(); toggleDock(); return; }
     if (e.target.isContentEditable) { if (e.key === 'Escape') toggleEdit(false); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     const k = e.key.toLowerCase();
